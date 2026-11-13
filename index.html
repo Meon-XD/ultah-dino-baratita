@@ -619,6 +619,153 @@
   }
   .toast.show { opacity: 1; transform: translate(-50%, 0); }
 
+  /* ---------- Jumpscare ---------- */
+  .jumpscare {
+    position: fixed;
+    inset: 0;
+    z-index: 70;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    overflow: hidden;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity .3s ease, visibility .3s ease;
+  }
+  .jumpscare.open { opacity: 1; visibility: visible; pointer-events: auto; }
+
+  .jumpscare.stage-scary {
+    background: #050109;
+    animation: scary-bg .12s steps(2) infinite;
+  }
+  @keyframes scary-bg {
+    0%   { background-color: #050109; }
+    50%  { background-color: #150208; }
+    100% { background-color: #050109; }
+  }
+
+  .jumpscare.stage-greet {
+    background: radial-gradient(circle at 50% 28%, #4c1d95 0%, #241052 45%, #0c0518 100%);
+  }
+
+  .jc-stage {
+    grid-area: 1 / 1;
+    width: 100%;
+    max-width: 560px;
+    text-align: center;
+  }
+
+  .jc-momo { display: none; }
+  .stage-scary .jc-momo { display: block; }
+
+  .jc-frame {
+    position: relative;
+    width: min(78vw, 420px);
+    aspect-ratio: 1 / 1;
+    margin: 0 auto;
+    filter: contrast(1.18) saturate(.7) drop-shadow(0 0 70px rgba(220, 38, 38, .5));
+    transform-origin: 50% 45%;
+  }
+  .stage-scary .jc-frame {
+    animation: momo-in .5s cubic-bezier(.15,.9,.2,1.25) both,
+               momo-shake .09s linear infinite .5s;
+  }
+  .jc-frame svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  @keyframes momo-in {
+    0%   { transform: scale(.4); opacity: 0; }
+    60%  { opacity: 1; }
+    100% { transform: scale(1.06); }
+  }
+  @keyframes momo-shake {
+    0%   { transform: scale(1.06) translate(0, 0); }
+    20%  { transform: scale(1.08) translate(-7px, 4px); }
+    40%  { transform: scale(1.05) translate(6px, -5px); }
+    60%  { transform: scale(1.09) translate(-5px, -3px); }
+    80%  { transform: scale(1.06) translate(5px, 5px); }
+    100% { transform: scale(1.07) translate(0, 0); }
+  }
+
+  .jc-scan {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(0deg, rgba(0,0,0,.42) 0 2px, transparent 2px 5px);
+    mix-blend-mode: multiply;
+    opacity: .6;
+  }
+  .jc-vignette {
+    position: absolute;
+    inset: -10%;
+    pointer-events: none;
+    background: radial-gradient(circle at 50% 45%, transparent 34%, rgba(120, 0, 20, .55) 78%, #2b0008 100%);
+  }
+  .jc-flash {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: #fff;
+    opacity: 0;
+  }
+  .stage-scary .jc-flash { animation: jc-flash .5s ease-out both; }
+  @keyframes jc-flash {
+    0%   { opacity: .95; }
+    12%  { opacity: .15; }
+    24%  { opacity: .7; }
+    100% { opacity: 0; }
+  }
+
+  .jc-greet { display: none; }
+  .stage-greet .jc-greet {
+    display: block;
+    animation: greet-in .65s cubic-bezier(.2,.9,.3,1.15) both;
+  }
+  @keyframes greet-in {
+    0%   { opacity: 0; transform: translateY(26px) scale(.94); filter: blur(8px); }
+    100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+  }
+
+  .jc-kicker {
+    margin: 0 0 8px;
+    font-size: .74rem;
+    letter-spacing: .34em;
+    text-transform: uppercase;
+    color: rgba(255, 248, 240, .7);
+  }
+  .jc-name {
+    font-family: "Baloo 2", sans-serif;
+    font-size: clamp(2.5rem, 10.5vw, 4.3rem);
+    line-height: 1;
+    margin: 0 0 16px;
+    background: linear-gradient(100deg, #fbbf24, #ff5fa2 40%, #a78bfa 70%, #38bdf8);
+    background-size: 220% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: shimmer 6s ease-in-out infinite;
+    filter: drop-shadow(0 8px 26px rgba(255, 95, 162, .45));
+  }
+  .jc-sub {
+    max-width: 460px;
+    margin: 0 auto 26px;
+    font-size: clamp(.95rem, 2.7vw, 1.05rem);
+    font-weight: 300;
+    line-height: 1.75;
+    color: rgba(255, 248, 240, .88);
+  }
+  .jc-note {
+    margin: 18px 0 0;
+    font-size: .78rem;
+    color: rgba(255, 248, 240, .5);
+  }
+
+  canvas#confetti.boost { z-index: 90; }
+
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
       animation-duration: .01ms !important;
@@ -650,6 +797,7 @@
 
     <div class="actions">
       <button class="btn" id="playBtn" type="button">🎵 Putar Musik Ulang Tahun</button>
+      <button class="btn ghost" id="surpriseBtn" type="button" style="border-color:rgba(255,95,162,.55);color:#ffd9e6;">🎁 Buka Kejutan</button>
       <button class="btn ghost" id="wishBtn" type="button">✨ Buat Harapan</button>
     </div>
 
@@ -724,6 +872,99 @@
 </button>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<div class="jumpscare" id="jumpscare" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Kejutan ulang tahun">
+  <div class="jc-flash" aria-hidden="true"></div>
+
+  <div class="jc-stage jc-momo" id="jcMomo" aria-hidden="true">
+    <div class="jc-frame">
+      <svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Wajah menyeramkan">
+        <defs>
+          <radialGradient id="skin" cx="50%" cy="36%" r="70%">
+            <stop offset="0%" stop-color="#f4e8d4"/>
+            <stop offset="62%" stop-color="#cdb499"/>
+            <stop offset="100%" stop-color="#6f5a42"/>
+          </radialGradient>
+          <radialGradient id="socket" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#120c09" stop-opacity=".95"/>
+            <stop offset="72%" stop-color="#120c09" stop-opacity=".55"/>
+            <stop offset="100%" stop-color="#120c09" stop-opacity="0"/>
+          </radialGradient>
+          <linearGradient id="hair" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#0b070c"/>
+            <stop offset="100%" stop-color="#211827"/>
+          </linearGradient>
+          <linearGradient id="eye" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#fffdf6"/>
+            <stop offset="100%" stop-color="#d9cdb6"/>
+          </linearGradient>
+          <radialGradient id="mouth" cx="50%" cy="20%" r="80%">
+            <stop offset="0%" stop-color="#24070c"/>
+            <stop offset="100%" stop-color="#0a0304"/>
+          </radialGradient>
+        </defs>
+
+        <rect width="400" height="400" fill="#07040a"/>
+
+        <path d="M52 400 C34 250 56 92 132 52 C184 26 244 30 288 60 C352 100 360 252 344 400 Z" fill="url(#hair)"/>
+
+        <ellipse cx="200" cy="212" rx="110" ry="148" fill="url(#skin)"/>
+
+        <ellipse cx="150" cy="182" rx="56" ry="50" fill="url(#socket)"/>
+        <ellipse cx="250" cy="180" rx="54" ry="48" fill="url(#socket)"/>
+
+        <circle cx="152" cy="184" r="27" fill="url(#eye)"/>
+        <circle cx="250" cy="182" r="25" fill="url(#eye)"/>
+
+        <circle cx="160" cy="190" r="9.5" fill="#241207"/>
+        <circle cx="245" cy="188" r="8.5" fill="#241207"/>
+        <circle cx="163" cy="187" r="2.6" fill="#fff8ec" opacity=".85"/>
+        <circle cx="248" cy="185" r="2.2" fill="#fff8ec" opacity=".8"/>
+
+        <path d="M148 214 Q152 220 158 218" stroke="#8d7256" stroke-width="2" fill="none" opacity=".6"/>
+        <path d="M246 212 Q250 219 256 217" stroke="#8d7256" stroke-width="2" fill="none" opacity=".6"/>
+
+        <path d="M200 198 L189 250 Q200 259 213 250 Z" fill="#a18463" opacity=".5"/>
+
+        <path d="M126 268 Q200 352 274 268 Q200 306 126 268 Z" fill="url(#mouth)"/>
+        <path d="M124 268 Q200 340 276 268 Q200 296 124 268 Z" fill="#0d0406"/>
+
+        <path d="M138 274 L150 296 L162 276 L174 298 L186 278 L198 300 L210 278 L222 298 L234 276 L246 296 L258 274
+                 Q200 302 138 274 Z" fill="#e9dfc9"/>
+        <path d="M138 274 Q200 302 258 274 L258 268 Q200 294 138 268 Z" fill="#c9bca2" opacity=".55"/>
+
+        <path d="M118 268 Q200 316 282 268" stroke="#33141a" stroke-width="4" fill="none" opacity=".7"/>
+
+        <g fill="#0d0709">
+          <path d="M96 96 C120 150 122 230 108 320 C104 340 92 352 78 356 C70 300 66 190 74 128 Z"/>
+          <path d="M304 96 C280 150 278 230 292 320 C296 340 308 352 322 356 C330 300 334 190 326 128 Z"/>
+          <path d="M150 42 C160 110 150 170 138 214 C132 150 136 84 150 42 Z" opacity=".85"/>
+        </g>
+
+        <path d="M176 108 Q200 96 224 108" stroke="#4a3324" stroke-width="5" fill="none" opacity=".35" stroke-linecap="round"/>
+        <path d="M152 110 Q166 100 180 106" stroke="#4a3324" stroke-width="4" fill="none" opacity=".3" stroke-linecap="round"/>
+        <path d="M220 108 Q234 100 248 106" stroke="#4a3324" stroke-width="4" fill="none" opacity=".3" stroke-linecap="round"/>
+
+        <path d="M176 230 Q200 224 224 230" stroke="#6d553d" stroke-width="2.5" fill="none" opacity=".5"/>
+        <path d="M86 200 Q74 240 82 286" stroke="#5b4530" stroke-width="2" fill="none" opacity=".4"/>
+        <path d="M314 196 Q326 238 316 288" stroke="#5b4530" stroke-width="2" fill="none" opacity=".4"/>
+      </svg>
+      <div class="jc-scan"></div>
+      <div class="jc-vignette"></div>
+    </div>
+  </div>
+
+  <div class="jc-stage jc-greet" id="jcGreet">
+    <p class="jc-kicker">Kaget dulu, ya 😈</p>
+    <h2 class="jc-name" id="jcName">Dino Baratita</h2>
+    <p class="jc-sub">
+      Selamat ulang tahun! Semoga tahun ini penuh tawa, langkah berani,
+      dan hal-hal baik yang datang tanpa diminta. 🎉
+    </p>
+    <button class="btn" id="jcClose" type="button">Lanjut ke Halaman 🎈</button>
+    <p class="jc-note">Tenang, ini cuma kejutan kecil buat kamu.</p>
+  </div>
+</div>
 
 <script>
 (function () {
@@ -1092,7 +1333,7 @@
 
     var target = event && event.target;
     var onControl = target && target.closest &&
-      target.closest("#musicToggle, #playBtn, #wishBtn, #cakeWrap");
+      target.closest("#musicToggle, #playBtn, #wishBtn, #surpriseBtn, #jcClose, #cakeWrap");
 
     document.removeEventListener("pointerdown", firstGesture);
     document.removeEventListener("touchstart", firstGesture);
@@ -1152,6 +1393,156 @@
     burst(w * 0.5, h * 0.25, 90);
     toast("Harapan terbaik untuk Dino sudah dikirim ke langit ✨");
     if (!isPlaying) startMusic();
+  });
+
+  /* ---------------- Jumpscare ---------------- */
+  var jumpscare = document.getElementById("jumpscare");
+  var jumpscareBusy = false;
+  var jcTimers = [];
+
+  var jcNameEl = document.getElementById("jcName");
+  if (jcNameEl) jcNameEl.textContent = nameText;
+
+  function playHorrorSound() {
+    if (!ensureAudio()) return;
+
+    var now = actx.currentTime;
+    var out = actx.createGain();
+    out.gain.setValueAtTime(0.0001, now);
+    out.gain.exponentialRampToValueAtTime(0.5, now + 0.04);
+    out.gain.setValueAtTime(0.5, now + 1.1);
+    out.gain.exponentialRampToValueAtTime(0.0001, now + 2.6);
+    out.connect(actx.destination);
+
+    var rumble = actx.createOscillator();
+    rumble.type = "sawtooth";
+    rumble.frequency.setValueAtTime(115, now);
+    rumble.frequency.exponentialRampToValueAtTime(27, now + 2.2);
+    var lowpass = actx.createBiquadFilter();
+    lowpass.type = "lowpass";
+    lowpass.frequency.value = 270;
+    var rumbleGain = actx.createGain();
+    rumbleGain.gain.value = 0.75;
+    rumble.connect(lowpass);
+    lowpass.connect(rumbleGain);
+    rumbleGain.connect(out);
+
+    var screech = actx.createOscillator();
+    screech.type = "sawtooth";
+    screech.frequency.setValueAtTime(1150, now);
+    screech.frequency.exponentialRampToValueAtTime(2150, now + 0.16);
+    screech.frequency.exponentialRampToValueAtTime(170, now + 2.0);
+    var band = actx.createBiquadFilter();
+    band.type = "bandpass";
+    band.frequency.value = 1400;
+    band.Q.value = 7;
+    var screechGain = actx.createGain();
+    screechGain.gain.setValueAtTime(0.0001, now);
+    screechGain.gain.exponentialRampToValueAtTime(0.32, now + 0.03);
+    screechGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.9);
+    var trem = actx.createOscillator();
+    trem.frequency.value = 17;
+    var tremGain = actx.createGain();
+    tremGain.gain.value = 0.11;
+    trem.connect(tremGain);
+    tremGain.connect(screechGain.gain);
+    screech.connect(band);
+    band.connect(screechGain);
+    screechGain.connect(out);
+
+    var noiseLen = Math.floor(actx.sampleRate * 1.8);
+    var noiseBuffer = actx.createBuffer(1, noiseLen, actx.sampleRate);
+    var noiseData = noiseBuffer.getChannelData(0);
+    for (var i = 0; i < noiseLen; i++) {
+      noiseData[i] = (Math.random() * 2 - 1) * (1 - i / noiseLen);
+    }
+    var noise = actx.createBufferSource();
+    noise.buffer = noiseBuffer;
+    var noiseFilter = actx.createBiquadFilter();
+    noiseFilter.type = "bandpass";
+    noiseFilter.frequency.value = 850;
+    noiseFilter.Q.value = 0.8;
+    var noiseGain = actx.createGain();
+    noiseGain.gain.setValueAtTime(0.0001, now);
+    noiseGain.gain.exponentialRampToValueAtTime(0.24, now + 0.02);
+    noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.5);
+    noise.connect(noiseFilter);
+    noiseFilter.connect(noiseGain);
+    noiseGain.connect(out);
+
+    [196, 207.65, 233.08].forEach(function (f) {
+      var osc = actx.createOscillator();
+      osc.type = "square";
+      osc.frequency.value = f;
+      var g = actx.createGain();
+      g.gain.setValueAtTime(0.0001, now);
+      g.gain.exponentialRampToValueAtTime(0.07, now + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + 0.9);
+      osc.connect(g);
+      g.connect(out);
+      osc.start(now);
+      osc.stop(now + 1);
+    });
+
+    var stopAt = now + 2.7;
+    rumble.start(now); rumble.stop(stopAt);
+    screech.start(now); screech.stop(stopAt);
+    trem.start(now); trem.stop(stopAt);
+    noise.start(now); noise.stop(now + 1.9);
+  }
+
+  function runJumpscare() {
+    if (jumpscareBusy) return;
+    jumpscareBusy = true;
+
+    if (isPlaying) stopMusic();
+
+    jcTimers.forEach(clearTimeout);
+    jcTimers = [];
+
+    jumpscare.classList.add("open", "stage-scary");
+    jumpscare.classList.remove("stage-greet");
+    jumpscare.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+
+    playHorrorSound();
+
+    jcTimers.push(setTimeout(function () {
+      burst(window.innerWidth / 2, window.innerHeight * 0.4, reduceMotion ? 30 : 120);
+    }, 1450));
+
+    jcTimers.push(setTimeout(function () {
+      jumpscare.classList.remove("stage-scary");
+      jumpscare.classList.add("stage-greet");
+      canvas.classList.add("boost");
+      if (!isPlaying) startMusic();
+      rainConfetti(reduceMotion ? 30 : 130);
+      var closeBtn = document.getElementById("jcClose");
+      if (closeBtn && closeBtn.focus) closeBtn.focus({ preventScroll: true });
+    }, 2050));
+  }
+
+  function closeJumpscare() {
+    jumpscare.classList.remove("open", "stage-scary", "stage-greet");
+    jumpscare.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
+    jumpscareBusy = false;
+
+    jcTimers.forEach(clearTimeout);
+    jcTimers = [];
+
+    burst(window.innerWidth / 2, window.innerHeight * 0.45, 70);
+    setTimeout(function () { canvas.classList.remove("boost"); }, 900);
+  }
+
+  document.getElementById("surpriseBtn").addEventListener("click", runJumpscare);
+  document.getElementById("jcClose").addEventListener("click", closeJumpscare);
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && jumpscare.classList.contains("open") &&
+        jumpscare.classList.contains("stage-greet")) {
+      closeJumpscare();
+    }
   });
 
   /* ---------------- Munculkan kartu saat digulir ---------------- */
