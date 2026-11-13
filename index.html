@@ -635,6 +635,21 @@
   }
   .jumpscare.open { opacity: 1; visibility: visible; pointer-events: auto; }
 
+  .yt-wrap {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    opacity: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  .yt-wrap iframe {
+    width: 100% !important;
+    height: 100% !important;
+    border: 0;
+    filter: brightness(0);
+  }
+
   .jumpscare.stage-scary {
     background: #050109;
     animation: scary-bg .12s steps(2) infinite;
@@ -650,6 +665,8 @@
   }
 
   .jc-stage {
+    position: relative;
+    z-index: 1;
     grid-area: 1 / 1;
     width: 100%;
     max-width: 560px;
@@ -910,6 +927,7 @@
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <div class="jumpscare" id="jumpscare" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Kejutan ulang tahun">
+  <div class="yt-wrap" aria-hidden="true"><div id="ytHost"></div></div>
   <div class="jc-flash" aria-hidden="true"></div>
   <div class="jc-vignette" aria-hidden="true"></div>
 
@@ -1004,6 +1022,7 @@
   </div>
 </div>
 
+<script src="https://www.youtube.com/iframe_api" async></script>
 <script>
 (function () {
   "use strict";
@@ -1441,6 +1460,89 @@
   var jcNameEl = document.getElementById("jcName");
   if (jcNameEl) jcNameEl.textContent = nameText;
 
+  /* Sumber suara jumpscare: embed resmi YouTube (audio saja, video dibuat hitam) */
+  var ytPlayer = null;
+  var ytReady = false;
+  var ytFallbackTimer = 0;
+  var ytFallbackUsed = false;
+
+  function initYouTube() {
+    if (ytPlayer || !window.YT || !window.YT.Player) return;
+    ytPlayer = new window.YT.Player("ytHost", {
+      width: "100%",
+      height: "100%",
+      videoId: "836i4XxCQRg",
+      playerVars: {
+        autoplay: 0,
+        controls: 0,
+        disablekb: 1,
+        fs: 0,
+        modestbranding: 1,
+        playsinline: 1,
+        rel: 0,
+        origin: window.location.origin
+      },
+      events: {
+        onReady: function (e) {
+          ytReady = true;
+          var frame = e.target.getIframe && e.target.getIframe();
+          if (frame) {
+            frame.setAttribute("allow", "autoplay; encrypted-media");
+            frame.setAttribute("tabindex", "-1");
+          }
+          try { e.target.setVolume(100); } catch (err) { /* abaikan */ }
+        },
+        onStateChange: function (e) {
+          if (e.data === 1) {
+            if (ytFallbackUsed) {
+              try { ytPlayer.pauseVideo(); } catch (err) { /* abaikan */ }
+            } else {
+              clearTimeout(ytFallbackTimer);
+            }
+          }
+        }
+      }
+    });
+  }
+
+  window.onYouTubeIframeAPIReady = initYouTube;
+  initYouTube();
+
+  function startJumpscareAudio() {
+    if (!ytPlayer || !ytReady) return false;
+
+    ytFallbackUsed = false;
+    clearTimeout(ytFallbackTimer);
+
+    try {
+      ytPlayer.unMute();
+      ytPlayer.setVolume(100);
+      ytPlayer.seekTo(0, true);
+      ytPlayer.playVideo();
+    } catch (e) {
+      return false;
+    }
+
+    ytFallbackTimer = setTimeout(function () {
+      var state = -1;
+      try { state = ytPlayer.getPlayerState(); } catch (e) { /* abaikan */ }
+      if (state !== 1) {
+        ytFallbackUsed = true;
+        playHorrorSound();
+      }
+    }, 900);
+
+    return true;
+  }
+
+  function stopJumpscareAudio() {
+    clearTimeout(ytFallbackTimer);
+    if (!ytPlayer || !ytReady) return;
+    try {
+      ytPlayer.pauseVideo();
+    } catch (e) { /* abaikan */ }
+  }
+
   function playHorrorSound() {
     if (!ensureAudio()) return;
 
@@ -1543,13 +1645,14 @@
     jumpscare.setAttribute("aria-hidden", "false");
     document.body.style.overflow = "hidden";
 
-    playHorrorSound();
+    if (!startJumpscareAudio()) playHorrorSound();
 
     jcTimers.push(setTimeout(function () {
       burst(window.innerWidth / 2, window.innerHeight * 0.4, reduceMotion ? 30 : 120);
     }, 1500));
 
     jcTimers.push(setTimeout(function () {
+      stopJumpscareAudio();
       jumpscare.classList.remove("stage-scary");
       jumpscare.classList.add("stage-greet");
       canvas.classList.add("boost");
@@ -1561,6 +1664,7 @@
   }
 
   function closeJumpscare() {
+    stopJumpscareAudio();
     jumpscare.classList.remove("open", "stage-scary", "stage-greet");
     jumpscare.setAttribute("aria-hidden", "true");
     document.body.style.overflow = "";
